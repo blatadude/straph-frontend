@@ -18,26 +18,26 @@ class App extends Component {
   };
 
   fetchSearch = () => {
-    fetch('http://localhost:4200/search?query=' + this.state.value).then(data => {
-      data.json().then(res => {
-        this.setState({
-          tracks: res.tracks
-        })
-        // set sidebar hidden if no tracks
-        if (this.state.selectedTracks.length >= 1) {
-          return;
-        } else {
-          this.setState({
-            sidebarShowing: false,
-            cardDivCol: 'col-12'
-          })
-        }
+    fetch('http://localhost:4200/search?query=' + this.state.value)
+      .then(data => data.json())
+      // add to state
+      .then(res => {
+        this.setState({tracks: res.tracks})
+      })    
+    // set sidebar hidden if no tracks
+    if (this.state.selectedTracks.length >= 1) {
+      return;
+    } else {
+      this.setState({
+        sidebarShowing: false,
+        cardDivCol: 'col-12',
       })
-    })
+    }
   };
   queryUpdate = (e) => {
     this.setState({value: e.target.value})
   };
+
   renderTrack = (tracks) => {
     if (this.state.tracks) {
     return this.state.tracks.map(track => {
@@ -68,12 +68,15 @@ class App extends Component {
     } 
     // if 5 tracks selected, return error somehow
     else if (this.state.selectedTracks.length === 5) {
-
+      this.setState({
+        warningShow: true,
+      })
     }
     // else, push
     else {
       arrayCopy.push(trackName);
     }
+    
     // update state. ughhh, use redux
     this.setState({
       selectedTracks: arrayCopy,
@@ -86,7 +89,7 @@ class App extends Component {
       return <List name={trackName} key={trackName}/>
     })
     return (
-      <ul className="list-group col-4" onClick={this.removeTrack()}>
+      <ul className="list-group col-4" >
         {trackListing}
       </ul>
     )  
