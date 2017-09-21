@@ -30,7 +30,7 @@ class App extends Component {
     } else {
       this.setState({
         sidebarShowing: false,
-        cardDivCol: 'col-12',
+        cardDivCol: 'col-12'
       })
     }
   };
@@ -38,12 +38,13 @@ class App extends Component {
     this.setState({value: e.target.value})
   };
 
-  renderTrack = (tracks) => {
+  renderTrack = () => {
     if (this.state.tracks) {
     return this.state.tracks.map(track => {
       let artists = track.artists.map(artist => artist.name).join(', ')
-      return <Track 
-      name={track.name} 
+      return <Track
+      id = {track.id} 
+      title={track.name} 
       artists={artists} 
       img={track.album.images[1].url} 
       key={track.id} 
@@ -57,36 +58,46 @@ class App extends Component {
     // find card parent element from click
     el = el.target.closest('.card');
     // hacky, but effective way to get card-title
-    let trackName = el.lastChild.firstChild.textContent;
-    console.log(trackName);
+    let trackName = el.dataset.title;
+    let trackId = el.dataset.id
+    console.log({
+      "trackName": trackName, 
+      "id": trackId});
     const arrayCopy = this.state.selectedTracks.slice();
-    // gets index of trackName
-    const trackIndex = this.state.selectedTracks.indexOf(trackName);
-    // If in array, remove
+    const idCopy = arrayCopy.map(track => track.id)
+    // get index of id if in selectedTracks - roundabout way
+    const trackIndex = idCopy.indexOf(trackId);
+    // console.log(trackIndex)
+    // If in array, remove at index of id, not ideal, but works
     if (trackIndex !== -1) {
       arrayCopy.splice(trackIndex, 1)
+      console.log(arrayCopy)
     } 
     // if 5 tracks selected, return error somehow
     else if (this.state.selectedTracks.length === 5) {
       this.setState({
         warningShow: true,
       })
+      return
     }
     // else, push
     else {
-      arrayCopy.push(trackName);
+      arrayCopy.push({id: trackId, title: trackName});
+      console.log(arrayCopy)
+      // console.log(arrayCopy)
     }
     
-    // update state. ughhh, use redux
     this.setState({
       selectedTracks: arrayCopy,
         sidebarShowing: true,
         cardDivCol: "col-8"
       })
+    // update state. ughhh, use redux
   };
   showSidebar = () => {
-    let trackListing = this.state.selectedTracks.map(trackName => {
-      return <List name={trackName} key={trackName}/>
+    let trackListing = this.state.selectedTracks.map(track => {
+      console.log(track)
+      return <List name={track.title} key={track.id}/>
     })
     return (
       <ul className="list-group col-4" >
