@@ -62,11 +62,19 @@ class App extends Component {
     const arrayCopy = this.state.selectedTracks.slice();
     // gets index of trackName
     const trackIndex = this.state.selectedTracks.indexOf(trackName);
+    // If in array, remove
     if (trackIndex !== -1) {
       arrayCopy.splice(trackIndex, 1)
-    } else {
+    } 
+    // if 5 tracks selected, return error somehow
+    else if (this.state.selectedTracks.length === 5) {
+
+    }
+    // else, push
+    else {
       arrayCopy.push(trackName);
     }
+    // update state. ughhh, use redux
     this.setState({
       selectedTracks: arrayCopy,
         sidebarShowing: true,
@@ -78,11 +86,12 @@ class App extends Component {
       return <List name={trackName} key={trackName}/>
     })
     return (
-      <ul className="list-group col-4">
+      <ul className="list-group col-4" onClick={this.removeTrack()}>
         {trackListing}
       </ul>
     )  
   }
+
   
   render() {
     return (
