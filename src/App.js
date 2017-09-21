@@ -1,41 +1,107 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
-
+import Track from './Track'
+import List from './List'
 class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
       value:'',
-      tracks: []
+      cardDivCol: 'col-12',
+      selectedTracks: [],
+      sidebarShowing: false
     }
   }
 
-  fetchSearch() {
-    fetch('localhost:4200/search?query=' + this.state.value).then(data => {
-      this.setState({tracks: data.tracks})
+  handleSubmit = (e) => {
+      e.preventDefault();
+      this.fetchSearch();
+  };
+
+  fetchSearch = () => {
+    fetch('http://localhost:4200/search?query=' + this.state.value).then(data => {
+      data.json().then(res => {
+        this.setState({
+          tracks: res.tracks
+        })
+        // set sidebar hidden if no tracks
+        if (this.state.selectedTracks.length >= 1) {
+          return;
+        } else {
+          this.setState({
+            sidebarShowing: false,
+            cardDivCol: 'col-12'
+          })
+        }
+      })
     })
+  };
+  queryUpdate = (e) => {
+    this.setState({value: e.target.value})
+  };
+  renderTrack = (tracks) => {
+    if (this.state.tracks) {
+    return this.state.tracks.map(track => {
+      let artists = track.artists.map(artist => artist.name).join(', ')
+      return <Track 
+      name={track.name} 
+      artists={artists} 
+      img={track.album.images[1].url} 
+      key={track.id} 
+      albumUrl={track.album.external_urls.spotify}
+      />
+      })
+    }
+    return
+  };
+  cardClick = (el) => {
+    // find card parent element from click
+    el = el.target.closest('.card');
+    // hacky, but effective way to get card-title
+    let trackName = el.lastChild.firstChild.textContent;
+    console.log(trackName);
+    const arrayCopy = this.state.selectedTracks.slice();
+    // gets index of trackName
+    const trackIndex = this.state.selectedTracks.indexOf(trackName);
+    if (trackIndex !== -1) {
+      arrayCopy.splice(trackIndex, 1)
+    } else {
+      arrayCopy.push(trackName);
+    }
+    this.setState({
+      selectedTracks: arrayCopy,
+        sidebarShowing: true,
+        cardDivCol: "col-8"
+      })
+  };
+  showSidebar = () => {
+    let trackListing = this.state.selectedTracks.map(trackName => {
+      return <List name={trackName} key={trackName}/>
+    })
+    return (
+      <ul className="list-group col-4">
+        {trackListing}
+      </ul>
+    )  
   }
-  handleChange() {
-    this.setState({value: event.target.value})
-  }
+  
   render() {
     return (
-    <div className="container-fluid mt-2">
-      <div className="row mb-2">
-        <div className="input-group col-10">
-          <input className="form-control" type="text" placeholder="Search!" value={this.state.value} onSubmit={this.fetchSearch}/>
-          <span className="input-group-button">
-            <button className="btn btn-secondary" type="button" onClick={this.handlefetchSearch}>Search</button>
-          </span>
-        </div>
-      </div>
-      <div className="col-10 d-flex justify-content-around flex-wrap">
-        <div className="card mb-2"><img className="card-img-top" src="https://i.scdn.co/image/51a6c30ca17ac55f5cca5261de9fecba05cf2986" alt="Card image cap"/>
-          <div className="card-body">
-            <h6 className="card-title">Pretty Rave Girl 2010</h6><a className="btn btn-primary" href="#">Go somewhere</a>
+    <div className="container-fluid mt-3">
+      <div className="row">
+        <form onSubmit={this.handleSubmit} className="col-12">
+          <div className="input-group mb-3">
+            <input className="form-control" type="text" placeholder="Search!" value={this.state.value} onChange={this.queryUpdate}/>
+            <span className="input-group-button">
+              <button className="btn btn-secondary" type="submit">Search</button>
+            </span>
           </div>
+        </form>
+        
+        <div className={`${this.state.cardDivCol} d-flex justify-content-md-around flex-wrap flex-row mb-3`} onClick={this.cardClick}>
+          {this.renderTrack()}
         </div>
+      {/* sidebar if tracks in array */}
+      {this.showSidebar()}
       </div>
     </div>
     );
